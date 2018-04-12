@@ -54,6 +54,7 @@ func InitTests(startIndexer bool) *Conn {
 		hasStartedTesting = true
 		log.SetFlags(log.Ltime | log.Lshortfile)
 		c.Domain = *eshost
+		c.Port = *esport
 	}
 	if startIndexer && !bulkStarted {
 		bulkStarted = true
@@ -78,6 +79,7 @@ func InitTests(startIndexer bool) *Conn {
 func NewTestConn() *Conn {
 	c := NewConn()
 	c.Domain = *eshost
+	c.Port = *esport
 	return c
 }
 
@@ -115,6 +117,7 @@ type GithubEvent struct {
 func LoadTestData() {
 	c := NewConn()
 	c.Domain = *eshost
+	c.Port = *esport
 
 	c.DeleteIndex(testIndex)
 
@@ -179,7 +182,7 @@ func LoadTestData() {
 				log.Println("HM, already exists? ", ge.Url)
 			}
 			docsm[id] = true
-			indexer.Index(testIndex, ge.Type, id, "", "", &ge.Created, line)
+			indexer.Index(testIndex, ge.Type, id, "", "", "", &ge.Created, line)
 			docCt++
 		} else {
 			log.Println("ERROR? ", string(line))

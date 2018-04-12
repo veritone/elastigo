@@ -20,6 +20,7 @@ import (
 var (
 	_                = log.Ldate
 	eshost   *string = flag.String("host", "localhost", "Elasticsearch Server Host Address")
+	esport   *string = flag.String("port", "9200", "Elasticsearch Server Host Port")
 	logLevel *string = flag.String("logging", "info", "Which log level: [debug,info,warn,error,fatal]")
 )
 
