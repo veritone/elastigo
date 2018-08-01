@@ -160,6 +160,7 @@ func (c *Conn) NewRequest(method, path, query string) (*Request, error) {
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("User-Agent", "elasticSearch/"+Version+" ("+runtime.GOOS+"-"+runtime.GOARCH+")")
+	req.Header.Add("Content-Type", "application/json")
 
 	if c.Username != "" || c.Password != "" {
 		req.SetBasicAuth(c.Username, c.Password)
