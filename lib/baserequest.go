@@ -22,6 +22,10 @@ import (
 )
 
 func (c *Conn) DoCommand(method string, url string, args map[string]interface{}, data interface{}) ([]byte, error) {
+	return c.DoCommandWithHeaders(method, url, args, nil, data)
+}
+
+func (c *Conn) DoCommandWithHeaders(method string, url string, args map[string]interface{}, headers map[string]string, data interface{}) ([]byte, error) {
 	var response map[string]interface{}
 	var body []byte
 	var httpStatusCode int
@@ -33,6 +37,11 @@ func (c *Conn) DoCommand(method string, url string, args map[string]interface{},
 	req, err := c.NewRequest(method, url, query)
 	if err != nil {
 		return body, err
+	}
+	if headers != nil {
+		for k, v := range headers {
+			req.Header.Set(k, v)
+		}
 	}
 
 	if data != nil {

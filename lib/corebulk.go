@@ -332,8 +332,9 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 	}
 
 	response := responseStruct{}
-
-	body, err := b.conn.DoCommand("POST", fmt.Sprintf("/_bulk?refresh=%t", b.Refresh), nil, buf)
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/x-ndjson"
+	body, err := b.conn.DoCommandWithHeaders("POST", fmt.Sprintf("/_bulk?refresh=%t", b.Refresh), nil, headers, buf)
 
 	if err != nil {
 		atomic.AddUint64(&b.numErrors, 1)
