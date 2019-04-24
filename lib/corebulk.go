@@ -379,7 +379,7 @@ func WriteBulkBytes(op string, index string, _type string, id, parent, routing, 
 	}
 
 	if len(routing) > 0 {
-		buf.WriteString(`,"_routing":"`)
+		buf.WriteString(`,"routing":"`)
 		buf.WriteString(routing)
 		buf.WriteString(`"`)
 	}
