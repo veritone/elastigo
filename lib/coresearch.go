@@ -189,9 +189,13 @@ func (s *SearchResult) String() string {
 	return fmt.Sprintf("<Results took=%v Timeout=%v hitct=%v />", s.Took, s.TimedOut, s.Hits.Total)
 }
 
+type HitsTotal {
+	Value int `json:"value"`
+	Relation string `json:"relation"`
+}
+
 type Hits struct {
-	Total int `json:"total"`
-	//	MaxScore float32 `json:"max_score"`
+	Total HitsTotal `json:"total"`
 	Hits []Hit `json:"hits"`
 }
 
