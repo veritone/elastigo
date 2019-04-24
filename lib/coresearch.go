@@ -189,7 +189,7 @@ func (s *SearchResult) String() string {
 	return fmt.Sprintf("<Results took=%v Timeout=%v hitct=%v />", s.Took, s.TimedOut, s.Hits.Total)
 }
 
-type HitsTotal {
+type HitsTotal struct {
 	Value int `json:"value"`
 	Relation string `json:"relation"`
 }
