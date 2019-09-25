@@ -190,13 +190,25 @@ func (s *SearchResult) String() string {
 }
 
 type HitsTotal struct {
-	Value int `json:"value"`
+	Value    int    `json:"value"`
 	Relation string `json:"relation"`
+}
+
+func (h *HitsTotal) UnmarshalJSON(data []byte) (err error) {
+	var legacyCount int
+	if err = json.Unmarshal(data, &legacyCount); err == nil {
+		h.Value = legacyCount
+		h.Relation = "eq"
+		return
+	}
+	type HTAlias HitsTotal
+	ha := (*HTAlias)(h)
+	return json.Unmarshal(data, ha)
 }
 
 type Hits struct {
 	Total HitsTotal `json:"total"`
-	Hits []Hit `json:"hits"`
+	Hits  []Hit     `json:"hits"`
 }
 
 func (h *Hits) Len() int {
