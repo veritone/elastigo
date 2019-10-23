@@ -330,9 +330,10 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 		Reason string `json:"reason"`
 	}
 	type indexingErrorStruct struct {
-		Index string    `json:"_index"`
-		Id    string    `json:"_id"`
-		Error errStruct `json:"error"`
+		Index  string    `json:"_index"`
+		Id     string    `json:"_id"`
+		Status int       `json:"status"`
+		Error  errStruct `json:"error"`
 	}
 	type indexingResponseStruct struct {
 		Indexing indexingErrorStruct `json:"index"`
@@ -360,9 +361,7 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 			atomic.AddUint64(&b.numErrors, uint64(len(response.Items)))
 			s := ""
 			for _, errItem := range response.Items {
-				if len(errItem.Indexing.Error.Reason) <= 0 {
-					s = s + fmt.Sprintf("%s | %s\n", errItem.Indexing.Id, string(body))
-				} else {
+				if errItem.Indexing.Status >= 400 {
 					s = s + fmt.Sprintf("%s | %s | %s\n", errItem.Indexing.Id, errItem.Indexing.Error.Type, errItem.Indexing.Error.Reason)
 				}
 			}
