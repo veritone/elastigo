@@ -360,7 +360,11 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 			atomic.AddUint64(&b.numErrors, uint64(len(response.Items)))
 			s := ""
 			for _, errItem := range response.Items {
-				s = s + fmt.Sprintf("%s | %s | %s\n", errItem.Indexing.Id, errItem.Indexing.Error.Type, errItem.Indexing.Error.Reason)
+				if len(errItem.Indexing.Error.Reason) <= 0 {
+					s = s + fmt.Sprintf("%s | %s\n", errItem.Indexing.Id, string(body))
+				} else {
+					s = s + fmt.Sprintf("%s | %s | %s\n", errItem.Indexing.Id, errItem.Indexing.Error.Type, errItem.Indexing.Error.Reason)
+				}
 			}
 			return fmt.Errorf("%s", s)
 		}
