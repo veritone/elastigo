@@ -325,10 +325,23 @@ func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, paren
 // This does the actual send of a buffer, which has already been formatted
 // into bytes of ES formatted bulk data
 func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
+	type errStruct struct {
+		Type   string `json:"type"`
+		Reason string `json:"reason"`
+	}
+	type indexingErrorStruct struct {
+		Index string    `json:"_index"`
+		Id    string    `json:"_id"`
+		Error errStruct `json:"error"`
+	}
+	type indexingResponseStruct struct {
+		Indexing indexingErrorStruct `json:"index"`
+	}
+
 	type responseStruct struct {
 		Took   int64                    `json:"took"`
 		Errors bool                     `json:"errors"`
-		Items  []map[string]interface{} `json:"items"`
+		Items  []indexingResponseStruct `json:"items"`
 	}
 
 	response := responseStruct{}
@@ -345,7 +358,11 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 	if jsonErr == nil {
 		if response.Errors {
 			atomic.AddUint64(&b.numErrors, uint64(len(response.Items)))
-			return fmt.Errorf("Bulk Insertion Error. Failed item count [%d]", len(response.Items))
+			s := ""
+			for _, errItem := range response.Items {
+				s = s + fmt.Sprintf("%s | %s | %s\n", errItem.Indexing.Id, errItem.Indexing.Error.Type, errItem.Indexing.Error.Reason)
+			}
+			return fmt.Errorf("%s", s)
 		}
 	}
 	return nil
