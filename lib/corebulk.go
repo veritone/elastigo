@@ -298,8 +298,13 @@ func (b *BulkIndexer) Update(index string, _type string, id, parent, routing, tt
 	return nil
 }
 
-func (b *BulkIndexer) Delete(index, _type, id string) {
-	queryLine := fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q}}\n", index, _type, id)
+func (b *BulkIndexer) Delete(index, _type, id, routing string) {
+	var queryLine string
+	if len(routing) > 0 {
+		queryLine = fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q,\"routing\":%q}}\n", index, _type, id, routing)
+	} else {
+		queryLine = fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q}}\n", index, _type, id)
+	}
 	b.bulkChannel <- []byte(queryLine)
 	return
 }
