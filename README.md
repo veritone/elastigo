@@ -1,7 +1,7 @@
 elastigo v2.0 
 -------------
 
-[![Build Status](https://drone.io/github.com/mattbaird/elastigo/status.png)](https://drone.io/github.com/mattbaird/elastigo)
+[![Actions Status](https://github.com/veritone/elasticgo/workflows/go}/badge.svg)](https://github.com/veritone/elastigo/actions)
 
 Big thanks to @alicebob for helping to get the drone.io CI working (note: the badge is being cached, known issue).
 
