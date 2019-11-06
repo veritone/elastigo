@@ -189,10 +189,26 @@ func (s *SearchResult) String() string {
 	return fmt.Sprintf("<Results took=%v Timeout=%v hitct=%v />", s.Took, s.TimedOut, s.Hits.Total)
 }
 
+type HitsTotal struct {
+	Value    int    `json:"value"`
+	Relation string `json:"relation"`
+}
+
+func (h *HitsTotal) UnmarshalJSON(data []byte) (err error) {
+	var legacyCount int
+	if err = json.Unmarshal(data, &legacyCount); err == nil {
+		h.Value = legacyCount
+		h.Relation = "eq"
+		return
+	}
+	type HTAlias HitsTotal
+	ha := (*HTAlias)(h)
+	return json.Unmarshal(data, ha)
+}
+
 type Hits struct {
-	Total int `json:"total"`
-	//	MaxScore float32 `json:"max_score"`
-	Hits []Hit `json:"hits"`
+	Total HitsTotal `json:"total"`
+	Hits  []Hit     `json:"hits"`
 }
 
 func (h *Hits) Len() int {

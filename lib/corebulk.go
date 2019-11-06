@@ -298,8 +298,13 @@ func (b *BulkIndexer) Update(index string, _type string, id, parent, routing, tt
 	return nil
 }
 
-func (b *BulkIndexer) Delete(index, _type, id string) {
-	queryLine := fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q}}\n", index, _type, id)
+func (b *BulkIndexer) Delete(index, _type, id, routing string) {
+	var queryLine string
+	if len(routing) > 0 {
+		queryLine = fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q,\"routing\":%q}}\n", index, _type, id, routing)
+	} else {
+		queryLine = fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q}}\n", index, _type, id)
+	}
 	b.bulkChannel <- []byte(queryLine)
 	return
 }
@@ -325,10 +330,24 @@ func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, paren
 // This does the actual send of a buffer, which has already been formatted
 // into bytes of ES formatted bulk data
 func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
+	type errStruct struct {
+		Type   string `json:"type"`
+		Reason string `json:"reason"`
+	}
+	type indexingErrorStruct struct {
+		Index  string    `json:"_index"`
+		Id     string    `json:"_id"`
+		Status int       `json:"status"`
+		Error  errStruct `json:"error"`
+	}
+	type indexingResponseStruct struct {
+		Indexing indexingErrorStruct `json:"index"`
+	}
+
 	type responseStruct struct {
 		Took   int64                    `json:"took"`
 		Errors bool                     `json:"errors"`
-		Items  []map[string]interface{} `json:"items"`
+		Items  []indexingResponseStruct `json:"items"`
 	}
 
 	response := responseStruct{}
@@ -345,7 +364,13 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 	if jsonErr == nil {
 		if response.Errors {
 			atomic.AddUint64(&b.numErrors, uint64(len(response.Items)))
-			return fmt.Errorf("Bulk Insertion Error. Failed item count [%d]", len(response.Items))
+			s := ""
+			for _, errItem := range response.Items {
+				if errItem.Indexing.Status >= 400 {
+					s = s + fmt.Sprintf("%s | %s | %s\n", errItem.Indexing.Id, errItem.Indexing.Error.Type, errItem.Indexing.Error.Reason)
+				}
+			}
+			return fmt.Errorf("%s", s)
 		}
 	}
 	return nil
@@ -379,13 +404,13 @@ func WriteBulkBytes(op string, index string, _type string, id, parent, routing, 
 	}
 
 	if len(routing) > 0 {
-		buf.WriteString(`,"_routing":"`)
+		buf.WriteString(`,"routing":"`)
 		buf.WriteString(routing)
 		buf.WriteString(`"`)
 	}
 
 	if op == "update" {
-		buf.WriteString(`,"_retry_on_conflict":3`)
+		buf.WriteString(`,"retry_on_conflict":3`)
 	}
 
 	if len(ttl) > 0 {
