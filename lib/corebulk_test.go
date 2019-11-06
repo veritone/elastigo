@@ -287,7 +287,7 @@ func TestBulkDelete(t *testing.T) {
 
 	indexer.Start()
 
-	indexer.Delete("fake", "fake_type", "1")
+	indexer.Delete("fake", "fake_type", "1", "1")
 
 	indexer.Flush()
 	indexer.Stop()
